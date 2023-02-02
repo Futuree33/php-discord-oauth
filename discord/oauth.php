@@ -28,6 +28,7 @@ final readonly class oauth
             $class->$key = $value;
         }
     }
+    
     private function request(string $url, array $headers = [], array $params = []) : string
     {
         $curl = curl_init($url);
@@ -38,6 +39,7 @@ final readonly class oauth
 
         return curl_exec($curl);
     }
+    
     public function authorize() : void
     {
         $params = [
