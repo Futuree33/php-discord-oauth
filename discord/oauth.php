@@ -28,7 +28,7 @@ final readonly class oauth
             $class->$key = $value;
         }
     }
-    
+
     private function request(string $url, array $headers = [], array $params = []) : string
     {
         $curl = curl_init($url);
@@ -39,7 +39,7 @@ final readonly class oauth
 
         return curl_exec($curl);
     }
-    
+
     public function authorize() : void
     {
         $params = [
@@ -52,7 +52,7 @@ final readonly class oauth
         header("Location: " . self::AUTH_URL . "?" . http_build_query($params));
     }
 
-    public function getTokens(string $code) : error | tokens | false
+    public function getTokens(string $code) : tokens | error | false
     {
         $params = [
             "client_id" => $this->client_id,
@@ -74,7 +74,7 @@ final readonly class oauth
         return $tokens;
     }
 
-    public function getUser(string $access_token) : error | user
+    public function getUser(string $access_token) : user | error
     {
         $headers = [
             "Authorization: Bearer " . $access_token
@@ -83,7 +83,7 @@ final readonly class oauth
         $response = $this->request(self::USER_URL, $headers);
 
         if (isset($response->error) || isset($response->message))
-            return new error($response->error, $response->error_description);
+            return new error($response->error, $response->error_description, $response->message, $response->code);
 
         $user = new user();
 
@@ -105,7 +105,7 @@ final readonly class oauth
         $response = $this->request(self::TOKEN_URL, params: $params);
 
         if (isset($response->error))
-            return new error($response->error, $response->error_description);
+            return new error($response->error, $response->error_description, $response->message, $response->code);
 
         $tokens = new tokens();
 
@@ -124,9 +124,9 @@ final readonly class oauth
 
         $response = $this->request(self::REVOKE_URL, ["Content-Type: application/x-www-form-urlencoded"], $params);
 
-        if ($response === "{}")
-            return true;
+        if (!$response)
+            return false;
 
-        return false;
+        return true;
     }
 }
